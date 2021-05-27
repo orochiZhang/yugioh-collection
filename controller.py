@@ -26,7 +26,8 @@ class CardController(object):
         sql = "select count(*) from texts where `isbuy` in %s ;" % str(isbuy)
         result = self.sql_execute(sql)
         count = result[0][0]
-        sql = "select `isbuy`, `id`, `name` from texts where `isbuy` in %s limit %s,%s;" % (isbuy, num, num+100)
+        sql = "select `isbuy`, `id`, `name` from texts where `isbuy` " \
+              "in %s limit %s,%s;" % (isbuy, num, num+100)
         result = self.sql_execute(sql)
         data = {}
         for t in result:
@@ -61,7 +62,10 @@ class CardController(object):
             return {}
         context = '%' + context + '%'
         print(context, isbuy)
-        sql = "SELECT `isbuy`, `id`, `name` FROM texts WHERE isbuy >= %d and (`name` LIKE '%s' or `content` LIKE '%s');" % (isbuy, context, context)
+        sql = "SELECT `isbuy`, `id`, `name` FROM texts " \
+              "WHERE isbuy <= %d and " \
+              "(`name` LIKE '%s' or `content` LIKE '%s');" \
+              % (isbuy, context, context)
         result = self.sql_execute(sql)
         data = {}
         for t in result:

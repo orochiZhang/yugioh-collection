@@ -7,6 +7,10 @@ from controller import CardController
 app = Flask(__name__)
 card = CardController()
 
+@app.after_request
+def cors(environ):
+    environ.headers['Access-Control-Allow-Origin']='*'
+    return environ
 
 @app.route('/', methods=['GET'])
 def show_card():
@@ -33,6 +37,11 @@ def buy_card():
 def no_card():
     id = int(request.args.get("id", 0))
     data = card.no_card(id)
+    return jsonify(data)
+
+@app.route('/count', methods=['GET'])
+def count():
+    data = card.count()
     return jsonify(data)
 
 
