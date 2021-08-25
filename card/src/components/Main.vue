@@ -8,13 +8,17 @@
             <input id="content" v-model="content" class="validate">
           </li>  
           <li>
-            {{this.content}}
             <a v-on:click="search()" 
               class=" btn-large halfway-fab waves-effect waves-light teal">
               搜索</a>
           </li>
           <li>
-            <select v-if="this.loaded == 1" style="display: block" value>
+            <a v-if="this.search_flag == 1" v-on:click="getdata(1)" 
+              class=" btn-large halfway-fab waves-effect waves-light teal">
+              取消搜索</a>
+          </li>
+          <li>
+            <select v-if="this.loaded == 1" style="display: block; margin-top: 10px;" value>
               <option 
                 v-for="count in this.pagecount" :key="count" 
                 :value="count" v-on:click="getdata(count)">
@@ -40,12 +44,12 @@
           <div class="card-image">
             <img :src="item.img" />
           </div>
-          <div class="card-content">
+          <div class="card-content" style="height: 80px;">
             <p>{{ item.name }}</p>
           </div>
           <div :class="item.isbuy?'card-action':'card-action blue-grey'">
             <a v-if="!item.isbuy" v-on:click="buy(index)" class="waves-effect waves-light blue btn">标记已有</a>
-            <a v-else v-on:click="nobuy(index)" class="waves-effect waves-light btn">取消标记</a>
+            <a v-else v-on:click="nobuy(index)" class="waves-effect waves-light btn">✔，取消标记</a>
           </div>
         </div>
       </div>
@@ -61,14 +65,6 @@ export default {
   },
   data(){
     return {
-      // this.pagecount = 0
-      // this.allcount = 0
-      // this.buycount = 0
-      // this.rate = 0
-      // this.all = 10
-      // this.loaded = 0
-      // this.datas = []
-      // this.content = ""
       pagecount : 0,
       allcount : 0,
       buycount : 0,
@@ -77,6 +73,7 @@ export default {
       loaded : 0,
       datas : [],
       content : "",
+      search_flag: 0,
     }
 
   },
@@ -112,6 +109,7 @@ export default {
         this.$set(this, "datas", l)
         this.$set(this, "loaded", 1)
         this.$set(this, "pagecount", pagecount)
+        this.$set(this, "search_flag", 0)
 
         console.log(this.datas, this.loaded, this.pagecount)
         this.$forceUpdate();
@@ -121,7 +119,6 @@ export default {
       });
     },
     setbuy(id) {
-      console.log(id);
       this.$axios.get('http://127.0.0.1:5000/buy?id='+id).then((res)=>{
           console.log(res.data);
       }).catch( (error) =>{
@@ -136,7 +133,6 @@ export default {
       })
     },
     search() {
-      console.log("search", this.content)
       this.$axios.get('http://127.0.0.1:5000/search?content='+this.content+"&isbuy="+this.all).then((res)=>{
         let l = []
         let data = res.data.data
@@ -151,6 +147,7 @@ export default {
         }
         this.$set(this, "datas", l)
         this.$set(this, "loaded", 1)
+        this.$set(this, "search_flag", 1)
         this.$forceUpdate();
       }).catch( (error) =>{
           console.log(error);
@@ -162,7 +159,12 @@ export default {
       }else{
         this.$set(this, "all", 10)
       }
-      this.getdata(1)
+      if (this.search_flag == 0) {
+        this.getdata(1)
+      }else {
+        this.search()
+      }
+      
       this.$forceUpdate();
     },
     getcount() {
