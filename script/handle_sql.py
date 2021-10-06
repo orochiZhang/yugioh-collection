@@ -9,7 +9,7 @@ text_new = "replace INTO `texts` (`id`, `name`, `content`, `key1`, `key2`, `key3
            "`key4`, `key5`, `key6`, `key7`, `key8`, `key9`, `key10`, `key11`, `key12`, " \
            "`key13`, `key14`, `key15`, `key16`)"
 
-file_list = ["data1.sql", "data2.sql", "data3.sql", "data4.sql"]
+file_list = ["data1.sql", "data2.sql", "data3.sql", "data4.sql", "data5.sql", "data6.sql"]
 
 with open("data.sql", "r", encoding='utf-8-sig') as f:
     s = f.readline()

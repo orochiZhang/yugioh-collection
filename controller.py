@@ -29,7 +29,7 @@ class CardController(object):
         sql = "select `id`, `isbuy` from buy where `isbuy` in %s limit %s, %s;"
         result = self.sql_execute(sql, (isbuy, num, num+100))
         data = {}
-        for t in map(lambda t: {t[0]: {'is_buy': t[1]}}, [t for t in result]):
+        for t in map(lambda t: {t[0]: {'isbuy': t[1]}}, [t for t in result]):
             data.update(t)
         
         if data:
@@ -55,14 +55,14 @@ class CardController(object):
         result = self.sql_execute(sql, (id,))
         return result
     
-    # 卡名，效果的模糊搜索
+    # 卡密，卡名，效果的模糊搜索
     def search_card(self, context, isbuy=0):
         if not context:
             return {}
         isbuy = (1, 0) if isbuy > 1 else (isbuy, isbuy)
         context = '%' + context + '%'
-        sql = "SELECT `id`, `name` FROM texts WHERE (`name` LIKE %s or `content` LIKE %s);"
-        result = self.sql_execute(sql, (context, context))
+        sql = "SELECT `id`, `name` FROM texts WHERE (`name` LIKE %s or `content` LIKE %s or `id` LIKE %s);"
+        result = self.sql_execute(sql, (context, context, context))
         data = {}
         id_list = []
         for t in result:
@@ -77,8 +77,7 @@ class CardController(object):
             if t[1] not in isbuy:
                 del data[t[0]]
             else:
-                data[t[0]]['is_buy'] = t[1]
-        print(data)
+                data[t[0]]['isbuy'] = t[1]
         return {'data': data}
     
     def count(self):
@@ -91,3 +90,38 @@ class CardController(object):
             'all': all,
             'rate': round(buy / all * 100, 3)
         }
+    
+    def get_pack_list(self):
+        sql = "select `series`, `pack` from pack"
+        data = self.sql_execute(sql, None)
+        result = {}
+        for d in data:
+            series = d[0]
+            pack = d[1]
+            if series not in result:
+                result[series] = [pack]
+            else:
+                result[series].append(pack)
+        return result
+
+    def get_pack_info(self, series, pack):
+        result = {}
+        id_list = []
+        
+        sql = "select `card_id`, `card_no`, `rare` from packinfo where `series` = %s and pack = %s;"
+        data = self.sql_execute(sql, (series, pack))
+        for d in data:
+            result[d[0]] = {"card_no": d[1], "rare": d[2]}
+            id_list.append(d[0])
+
+        if id_list:
+            sql = "select `id`, `name` FROM texts WHERE `id` in %s;"
+            data = self.sql_execute(sql, (id_list,))
+            for d in data:
+                result[d[0]]["name"] = d[1]
+        
+            sql = "select `id`, `isbuy` from buy WHERE `id` in %s;"
+            data = self.sql_execute(sql, (id_list,))
+            for d in data:
+                result[d[0]]["isbuy"] = d[1]
+        return result

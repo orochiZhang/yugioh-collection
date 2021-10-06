@@ -18,6 +18,12 @@
               取消搜索</a>
           </li>
           <li>
+            <a v-if="this.search_flag == 1" v-on:click="setallbuy()" 
+              class=" btn-large halfway-fab waves-effect waves-light teal">
+              一键标记</a>
+          </li>
+
+          <li>
             <select v-if="this.loaded == 1" style="display: block; margin-top: 10px;" value>
               <option 
                 v-for="count in this.pagecount" :key="count" 
@@ -60,9 +66,6 @@
 <script>
 export default {
   name: "Main",
-  props: {
-    msg: String,
-  },
   data(){
     return {
       pagecount : 0,
@@ -102,7 +105,7 @@ export default {
             'id': index,
             'name': data[index].name,
             'img': "http://127.0.0.1/card/"+index+".jpg",
-            "isbuy": data[index].is_buy,
+            "isbuy": data[index].isbuy,
           }
           l.push(temp)
         }
@@ -118,9 +121,15 @@ export default {
           console.log(error);
       });
     },
+    setallbuy() {
+      for (var i=0;i<this.datas.length;i++){ 
+          this.buy(i)
+      }
+    },
     setbuy(id) {
       this.$axios.get('http://127.0.0.1:5000/buy?id='+id).then((res)=>{
           console.log(res.data);
+          this.getcount()
       }).catch( (error) =>{
           console.log(error);
       })
@@ -128,6 +137,7 @@ export default {
     setnocard(id) {
       this.$axios.get('http://127.0.0.1:5000/nocard?id='+id).then((res)=>{
           console.log(res.data);
+          this.getcount()
       }).catch( (error) =>{
           console.log(error);
       })
@@ -141,14 +151,15 @@ export default {
             'id': index,
             'name': data[index].name,
             'img': "http://127.0.0.1/card/"+index+".jpg",
-            "isbuy": data[index].is_buy,
+            "isbuy": data[index].isbuy,
           }
           l.push(temp)
         }
         this.$set(this, "datas", l)
         this.$set(this, "loaded", 1)
         this.$set(this, "search_flag", 1)
-        this.$forceUpdate();
+        this.$forceUpdate()
+        this.getcount()
       }).catch( (error) =>{
           console.log(error);
       })

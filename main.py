@@ -44,6 +44,17 @@ def count():
     data = card.count()
     return jsonify(data)
 
+@app.route('/pack_list', methods=['GET'])
+def get_pack_list():
+    data = card.get_pack_list()
+    return jsonify(data)
+
+@app.route('/pack_info', methods=['GET'])
+def get_pack_info():
+    series = request.args.get("series", "")
+    pack = request.args.get("pack", "")
+    data = card.get_pack_info(series, pack)
+    return jsonify(data)
 
 if __name__ == '__main__':
     app.run(debug=True)
