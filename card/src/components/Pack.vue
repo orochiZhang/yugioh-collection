@@ -2,7 +2,11 @@
   <div class="hello">
     <nav class="nav-extended">
       <div class="nav-wrapper">
-        
+        <ul class="left hide-on-med-and-down">
+          <li>
+            <router-link to="/">Go to 全卡浏览</router-link>
+          </li>
+        </ul>
         <ul class="right hide-on-med-and-down">  
           <li style="margin-right: 10px;">
             <select v-if="this.loaded == 1" style="display: block; margin-top: 10px;" value>

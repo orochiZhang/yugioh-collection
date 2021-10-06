@@ -56,7 +56,7 @@ class CardController(object):
         return result
     
     # 卡密，卡名，效果的模糊搜索
-    def search_card(self, context, isbuy=0):
+    def search_card(self, context, isbuy=10):
         if not context:
             return {}
         isbuy = (1, 0) if isbuy > 1 else (isbuy, isbuy)
@@ -71,6 +71,63 @@ class CardController(object):
         if not id_list:
             return {'data': data}
         
+        sql = "SELECT `id`, `isbuy` FROM buy WHERE `id` in %s"
+        result = self.sql_execute(sql, (id_list,))
+        for t in result:
+            if t[1] not in isbuy:
+                del data[t[0]]
+            else:
+                data[t[0]]['isbuy'] = t[1]
+        return {'data': data}
+
+    # 卡名模糊搜索
+    def search_card_by_name(self, context, isbuy=10):
+        if not context:
+            return {}
+        isbuy = (1, 0) if isbuy > 1 else (isbuy, isbuy)
+        context = '%' + context + '%'
+        sql = "SELECT `id`, `name` FROM texts WHERE (`name` LIKE %s);"
+        result = self.sql_execute(sql, (context,))
+        data = {}
+        id_list = []
+        for t in result:
+            id_list.append(t[0])
+            data[t[0]] = {'name': t[1]}
+        if not id_list:
+            return {'data': data}
+    
+        sql = "SELECT `id`, `isbuy` FROM buy WHERE `id` in %s"
+        result = self.sql_execute(sql, (id_list,))
+        for t in result:
+            if t[1] not in isbuy:
+                del data[t[0]]
+            else:
+                data[t[0]]['isbuy'] = t[1]
+        return {'data': data}
+
+    # 卡包编号模糊搜索
+    def search_card_by_pack_number(self, context, isbuy=10):
+        if not context:
+            return {}
+        isbuy = (1, 0) if isbuy > 1 else (isbuy, isbuy)
+        context = '%' + context + '%'
+        sql = "SELECT `card_id`, `card_no`, `rare` FROM packinfo WHERE (`card_no` LIKE %s);"
+        result = self.sql_execute(sql, (context,))
+        data = {}
+        id_list = []
+        for t in result:
+            card_id, card_no, rare = t[0], t[1], t[2]
+            id_list.append(card_id)
+            data[t[0]] = {'name': card_no +" "+ rare}
+        if not id_list:
+            return {'data': data}
+
+        sql = "SELECT `id`, `name` FROM texts WHERE `id` in %s;"
+        result = self.sql_execute(sql, (id_list,))
+        for t in result:
+            card_id, name = t[0], t[1]
+            data[card_id]['name'] += (" " + name)
+    
         sql = "SELECT `id`, `isbuy` FROM buy WHERE `id` in %s"
         result = self.sql_execute(sql, (id_list,))
         for t in result:

@@ -2,8 +2,20 @@
   <div class="hello">
     <nav class="nav-extended">
       <div class="nav-wrapper">
-        
+        <ul class="left hide-on-med-and-down">
+          <li>
+            <router-link to="pack">Go to 按卡包查询</router-link>
+          </li>
+        </ul>
         <ul class="right hide-on-med-and-down">
+
+          <li style="margin-right: 10px;">
+            <select v-if="this.loaded == 1" style="display: block; margin-top: 10px;">
+              <option :key="1" :value="1" v-on:click="changesearchtype(1)">卡名，效果，卡密</option>
+              <option :key="2" :value="2" v-on:click="changesearchtype(2)">卡名</option>
+              <option :key="3" :value="3" v-on:click="changesearchtype(3)">卡片编号</option>
+            </select>
+           <li>
           <li>
             <input id="content" v-model="content" class="validate">
           </li>  
@@ -24,7 +36,7 @@
           </li>
 
           <li>
-            <select v-if="this.loaded == 1" style="display: block; margin-top: 10px;" value>
+            <select v-if="this.loaded == 1 && this.search_flag == 0" style="display: block; margin-top: 10px;">
               <option 
                 v-for="count in this.pagecount" :key="count" 
                 :value="count" v-on:click="getdata(count)">
@@ -43,8 +55,9 @@
       </div>
     </nav>
 
-    <div class="row" v-if="this.loaded == 1">
+    <div class="chip chips-initial" style="margin:10px">本页一共有{{this.datas.length}}张数据</div>
 
+    <div class="row" v-if="this.loaded == 1">
       <div class="col s12 m6 l2" v-for="(item, index) in this.datas" :key="item.id">
         <div class="card">
           <div class="card-image">
@@ -77,6 +90,7 @@ export default {
       datas : [],
       content : "",
       search_flag: 0,
+      searchtype: 1,
     }
 
   },
@@ -142,7 +156,19 @@ export default {
           console.log(error);
       })
     },
+    changesearchtype(searchtype) {
+      this.$set(this, "searchtype", searchtype)
+    },
     search() {
+      if (this.searchtype == 1){
+        this.search_all()
+      }else if (this.searchtype == 2){
+        this.search_name()
+      }else if (this.searchtype == 3){
+        this.search_pack_number()
+      }
+    },
+    search_all() {
       this.$axios.get('http://127.0.0.1:5000/search?content='+this.content+"&isbuy="+this.all).then((res)=>{
         let l = []
         let data = res.data.data
@@ -155,6 +181,52 @@ export default {
           }
           l.push(temp)
         }
+        this.$set(this, "datas", l)
+        this.$set(this, "loaded", 1)
+        this.$set(this, "search_flag", 1)
+        this.$forceUpdate()
+        this.getcount()
+      }).catch( (error) =>{
+          console.log(error);
+      })
+    },
+    search_name() {
+      this.$axios.get('http://127.0.0.1:5000/search/name?content='+this.content+"&isbuy="+this.all).then((res)=>{
+        let l = []
+        let data = res.data.data
+        for (let index in data){
+          let temp = {
+            'id': index,
+            'name': data[index].name,
+            'img': "http://127.0.0.1/card/"+index+".jpg",
+            "isbuy": data[index].isbuy,
+          }
+          l.push(temp)
+        }
+        this.$set(this, "datas", l)
+        this.$set(this, "loaded", 1)
+        this.$set(this, "search_flag", 1)
+        this.$forceUpdate()
+        this.getcount()
+      }).catch( (error) =>{
+          console.log(error);
+      })
+    },
+    search_pack_number() {
+      this.$axios.get('http://127.0.0.1:5000/search/packnumber?content='+this.content+"&isbuy="+this.all).then((res)=>{
+        let l = []
+        let data = res.data.data
+        for (let index in data){
+          let temp = {
+            'id': index,
+            'name': data[index].name,
+            'img': "http://127.0.0.1/card/"+index+".jpg",
+            "isbuy": data[index].isbuy,
+          }
+          l.push(temp)
+        }
+        l = l.sort(function(a,b){return a.name.localeCompare(b.name)})
+        console.log("sort>>>>", l);
         this.$set(this, "datas", l)
         this.$set(this, "loaded", 1)
         this.$set(this, "search_flag", 1)

@@ -24,18 +24,31 @@ def search_card():
     content = str(request.args.get("content", ""))
     isbuy = int(request.args.get("isbuy", 0))
     data = card.search_card(content, isbuy)
+    return jsonify(data)
 
+@app.route('/search/name', methods=['GET'])
+def search_card_by_name():
+    content = str(request.args.get("content", ""))
+    isbuy = int(request.args.get("isbuy", 0))
+    data = card.search_card_by_name(content, isbuy)
+    return jsonify(data)
+
+@app.route('/search/packnumber', methods=['GET'])
+def search_card_by_pack_number():
+    content = str(request.args.get("content", ""))
+    isbuy = int(request.args.get("isbuy", 10))
+    data = card.search_card_by_pack_number(content, isbuy)
     return jsonify(data)
 
 @app.route('/buy', methods=['GET'])
 def buy_card():
-    id = int(request.args.get("id", 0))
+    id = int(request.args.get("id", 10))
     data = card.buy_card(id)
     return jsonify(data)
 
 @app.route('/nocard', methods=['GET'])
 def no_card():
-    id = int(request.args.get("id", 0))
+    id = int(request.args.get("id", 10))
     data = card.no_card(id)
     return jsonify(data)
 
