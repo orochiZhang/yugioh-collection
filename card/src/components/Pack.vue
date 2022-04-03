@@ -16,7 +16,7 @@
               </option>
             </select>
           </li>
-          <li>
+          <li style="margin-right: 10px;">
             <select v-if="this.loaded == 1" style="display: block; margin-top: 10px;" value>
               <option 
                 v-for="pack in this.pack_dict[this.series]" :key="pack" 
@@ -25,16 +25,15 @@
               </option>
             </select>
           </li>
-          <li>
-            <a v-on:click="setallbuy()" class=" btn-large halfway-fab waves-effect waves-light teal">
-                一键标记</a>
-          </li>
         </ul>
       </div>
     </nav>
-
+      <div class="chip chips-initial" style="margin:10px">本页一共有{{this.datas.length}}张数据</div>
+      <div class="chip chips-initial" style="margin:10px">本页收集率：{{this.page_rate}}%</div>
+      <a v-on:click="setallbuy()" class=" btn-small halfway-fab waves-effect waves-light teal">
+        一键标记
+      </a>
     <div class="row" v-if="this.loaded == 1">
-
       <div class="col s12 m6 l2" v-for="(item, index) in this.datas" :key="item.id">
         <div class="card">
           <div class="card-image">
@@ -65,6 +64,7 @@ export default {
       series : "",
       datas : [],
       content : "",
+      page_rate: 0,
     }
 
   },
@@ -90,6 +90,7 @@ export default {
         console.log(this.pack_dict, res.data);
         for (let series in res.data){
           series_list.push(series)
+          pack_dict[series].sort(function(a,b){return b.localeCompare(a)})
         }
         
         this.$set(this, "pack_dict", pack_dict)
@@ -117,22 +118,29 @@ export default {
       this.$axios.get('http://127.0.0.1:5000/pack_info?series='+this.series+'&pack='+this.pack,).then((res)=>{
         let data = res.data
         let l =[]
+        let img_url = "0"
         for (let index in data){
-          let i = data[index].name ? index : 0
+          if (index < 0){
+            img_url = "0"
+          }else{
+            img_url = index
+          }
           let temp = {
             'id': index,
             'name': data[index].name ? data[index].name : data[index].card_no,
-            'img': "http://127.0.0.1/card/"+i+".jpg",
+            'img': "http://127.0.0.1/card/"+img_url+".jpg",
             "isbuy": data[index].isbuy,
           }
           l.push(temp)
         }
+        l.sort(function(a,b){return a.name.localeCompare(b.name)})
         console.log(data);  
         this.$set(this, "datas", l)
         this.$set(this, "loaded", 1)
 
         console.log(this.datas)
         this.$forceUpdate();
+        this.getcount();
 
       }).catch( (error) =>{
           console.log(error);
@@ -157,6 +165,29 @@ export default {
           console.log(error);
       })
     },
+    getcount() {
+      this.$axios.get('http://127.0.0.1:5000/count').then((res)=>{
+        this.allcount = res.data.all
+        this.buycount = res.data.buy
+        this.rate = res.data.rate
+        let all = 0
+        let buy = 0
+        for (let index in this.datas){
+          all += 1
+          if (this.datas[index].isbuy == 1){
+            buy += 1
+          }
+        }
+        if (all == 0){
+          this.page_rate = 0
+        }else{
+          this.page_rate = (buy / all * 100).toFixed(2)
+        }
+        this.$forceUpdate();
+      }).catch( (error) =>{
+          console.log(error);
+      })
+    }
   }
 
 };

@@ -30,12 +30,6 @@
               取消搜索</a>
           </li>
           <li>
-            <a v-if="this.search_flag == 1" v-on:click="setallbuy()" 
-              class=" btn-large halfway-fab waves-effect waves-light teal">
-              一键标记</a>
-          </li>
-
-          <li>
             <select v-if="this.loaded == 1 && this.search_flag == 0" style="display: block; margin-top: 10px;">
               <option 
                 v-for="count in this.pagecount" :key="count" 
@@ -56,6 +50,10 @@
     </nav>
 
     <div class="chip chips-initial" style="margin:10px">本页一共有{{this.datas.length}}张数据</div>
+    <div class="chip chips-initial" style="margin:10px">本页收集率：{{this.page_rate}}%</div>
+    <a v-if="this.search_flag == 1" v-on:click="setallbuy()" class=" btn-small halfway-fab waves-effect waves-light teal">
+      一键标记
+    </a>
 
     <div class="row" v-if="this.loaded == 1">
       <div class="col s12 m6 l2" v-for="(item, index) in this.datas" :key="item.id">
@@ -65,6 +63,7 @@
           </div>
           <div class="card-content" style="height: 80px;">
             <p>{{ item.name }}</p>
+             <p v-if="'atk' in item">ATK: {{item.atk}} </p>
           </div>
           <div :class="item.isbuy?'card-action':'card-action blue-grey'">
             <a v-if="!item.isbuy" v-on:click="buy(index)" class="waves-effect waves-light blue btn">标记已有</a>
@@ -91,6 +90,7 @@ export default {
       content : "",
       search_flag: 0,
       searchtype: 1,
+      page_rate: 0,
     }
 
   },
@@ -128,7 +128,7 @@ export default {
         this.$set(this, "pagecount", pagecount)
         this.$set(this, "search_flag", 0)
 
-        console.log(this.datas, this.loaded, this.pagecount)
+        this.getcount();
         this.$forceUpdate();
 
       }).catch( (error) =>{
@@ -141,6 +141,9 @@ export default {
       }
     },
     setbuy(id) {
+      if (id == 0) {
+        return
+      }
       this.$axios.get('http://127.0.0.1:5000/buy?id='+id).then((res)=>{
           console.log(res.data);
           this.getcount()
@@ -178,9 +181,11 @@ export default {
             'name': data[index].name,
             'img': "http://127.0.0.1/card/"+index+".jpg",
             "isbuy": data[index].isbuy,
+            "atk": Number(data[index].atk),
           }
           l.push(temp)
         }
+        l = l.sort(function(a,b){return a.atk > b.atk})
         this.$set(this, "datas", l)
         this.$set(this, "loaded", 1)
         this.$set(this, "search_flag", 1)
@@ -215,18 +220,24 @@ export default {
     search_pack_number() {
       this.$axios.get('http://127.0.0.1:5000/search/packnumber?content='+this.content+"&isbuy="+this.all).then((res)=>{
         let l = []
+        let img_url = '0'
         let data = res.data.data
         for (let index in data){
+          if (index < 0){
+            img_url = '0'
+          }else{
+            img_url = index
+          }
+            
           let temp = {
             'id': index,
             'name': data[index].name,
-            'img': "http://127.0.0.1/card/"+index+".jpg",
+            'img': "http://127.0.0.1/card/"+img_url+".jpg",
             "isbuy": data[index].isbuy,
           }
           l.push(temp)
         }
         l = l.sort(function(a,b){return a.name.localeCompare(b.name)})
-        console.log("sort>>>>", l);
         this.$set(this, "datas", l)
         this.$set(this, "loaded", 1)
         this.$set(this, "search_flag", 1)
@@ -255,6 +266,19 @@ export default {
         this.allcount = res.data.all
         this.buycount = res.data.buy
         this.rate = res.data.rate
+        let all = 0
+        let buy = 0
+        for (let index in this.datas){
+          all += 1
+          if (this.datas[index].isbuy == 1){
+            buy += 1
+          }
+        }
+        if (all == 0){
+          this.page_rate = 0
+        }else{
+          this.page_rate = (buy / all * 100).toFixed(2)
+        }
         this.$forceUpdate();
       }).catch( (error) =>{
           console.log(error);

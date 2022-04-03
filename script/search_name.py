@@ -3,8 +3,17 @@ import pymysql
 
 # 由于翻译不同，需要搜索确认是否有这个卡牌
 
-name_list = []
+s = """
+异次元的指名者x1 拼图友爱天使x1 机怪兽 达莱特龙x1 爬虫妖女·梅露辛x1 超重武者 魂-Cx1 SIMM标签貘x1 天穹之圣像骑士x1 魔神仪-蜡烛人偶x1 明星之机械骑士x1 极超流星x1 零型额外连接x1 孤毒之剑x1 预见存折x1 单一化x1 庄家选择x1 北极天熊-帝车x1 机关傀儡-基冈提斯人偶x1 创世者的化身x1 白衣忍者x1 秩序守护者x1 急兔马x1 能量吸收板x1 电脑堺凰-凰凰x1 武神-日孁x1 巨神龙 闪耀x1 光辉精灵x1 天刑王 黑天x1
 
+"""
+s = s.replace('x2', 'x1')
+s = s.replace('x3', 'x1')
+s = s.strip('\n')
+s = s.strip(' ')
+s = s.strip('x1')
+name_list = s.split('x1 ')
+print(name_list)
 
 # 打开数据库连接
 db = pymysql.connect("localhost", "root", "123456", "card")
@@ -15,7 +24,7 @@ over2 = []
 not_found = []
 
 for name in name_list:
-    sql = "select count(`id`), `name` from texts where `name` = '%s' " % name
+    sql = "select count(`id`), `name` from buy where `name` = '%s' " % name
     # 使用 execute()  方法执行 SQL 查询
     cursor.execute(sql)
     result = cursor.fetchall()
